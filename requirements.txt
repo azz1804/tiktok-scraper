@@ -1,0 +1,4 @@
+playwright
+pydantic
+browser_cookie3
+httpx[http2]

@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.tiktok_cookies.json
+re_captures/
+venv/
+.env
