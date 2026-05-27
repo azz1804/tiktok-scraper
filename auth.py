@@ -2,7 +2,7 @@
 TikTok Cookie Authentication — Standalone
 
 Extracts TikTok session cookies from Chrome via browser_cookie3.
-Stores cookies in a local JSON file (no database dependency).
+Stores cookies in a local JSON file.
 """
 
 import asyncio
@@ -22,12 +22,10 @@ LOGIN_URL = "https://www.tiktok.com/login"
 
 REQUIRED_COOKIES = ["sessionid", "sid_tt", "passport_csrf_token", "sid_guard", "uid_tt"]
 
-# Default path for standalone cookie storage
 COOKIE_FILE = Path(__file__).parent / ".tiktok_cookies.json"
 
 
 def extract_tiktok_cookies_from_chrome() -> dict:
-    """Extract TikTok cookies from Chrome using browser_cookie3."""
     cj = browser_cookie3.chrome(domain_name=".tiktok.com")
     cookies = {c.name: c.value for c in cj}
     return cookies
@@ -41,7 +39,6 @@ class TikTokAuth:
         self._cookie_file = Path(cookie_file) if cookie_file else COOKIE_FILE
 
     def _load_cookies_from_file(self) -> dict | None:
-        """Load cookies from local JSON file."""
         if not self._cookie_file.exists():
             return None
         try:
@@ -53,18 +50,15 @@ class TikTokAuth:
         return None
 
     def _save_cookies_to_file(self, cookies: dict):
-        """Save cookies to local JSON file."""
         self._cookie_file.write_text(json.dumps(cookies, indent=2))
 
     async def get_active_cookies(self) -> dict | None:
-        """Load cookies from file storage."""
         cookies = self._load_cookies_from_file()
         if cookies:
             self._cookies = cookies
         return cookies
 
     async def import_cookies_now(self) -> dict:
-        """Extract TikTok cookies from Chrome immediately."""
         cookies = await asyncio.get_event_loop().run_in_executor(
             None, extract_tiktok_cookies_from_chrome
         )
@@ -76,7 +70,6 @@ class TikTokAuth:
         return cookies
 
     async def start_browser_login(self, on_status=None) -> bool:
-        """Open TikTok in Chrome, wait for login, extract cookies."""
         try:
             if on_status:
                 await on_status("Opening TikTok in Chrome... Log in normally.")
@@ -86,9 +79,8 @@ class TikTokAuth:
             if on_status:
                 await on_status("Log in to TikTok in Chrome, then come back here.")
 
-            for i in range(36):  # 36 * 5s = 180s max
+            for i in range(36):
                 await asyncio.sleep(5)
-
                 try:
                     cookies = await asyncio.get_event_loop().run_in_executor(
                         None, extract_tiktok_cookies_from_chrome
@@ -118,7 +110,6 @@ class TikTokAuth:
             return False
 
     async def get_authenticated_context(self) -> BrowserContext | None:
-        """Get a Playwright browser context loaded with saved cookies."""
         cookies = self._cookies or await self.get_active_cookies()
         if not cookies:
             return None
